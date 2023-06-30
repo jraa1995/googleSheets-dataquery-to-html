@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Data Visualization - Scatter Plot</title>
+  <style>
+    /* CSS styles for the filter box and visualization container */
+    .filter-box {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    #visualization {
+      width: 800px;
+      height: 400px;
+      margin: 50px auto;
+      border: 1px solid #ccc;
+    }
+  </style>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <div class="filter-box">
+    <label for="filter">Filter:</label>
+    <input type="text" id="filter">
+  </div>
+  <div id="visualization"></div>
+
+  <script>
+    // JavaScript code to fetch data from URL and create scatter plot
+    function fetchDataAndCreateVisualization() {
+      var url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTalgjyg8w13Twn2NDP9DI_mI3hrFAPbFPiVkX0eNYxvpZU8Q7PeLx3SHK-e2TIWG0ZNZ1apGOA0A6D/pub?output=csv';
+
+      fetch(url)
+        .then(function(response) {
+          return response.text();
+        })
+        .then(function(data) {
+          var rows = data.split("\n").slice(1); // Remove header row
+          var filteredData = rows.map(function(row) {
+            var values = row.split(",");
+            return {
+              name: values[0].trim(),
+              age: parseInt(values[1].trim()),
+              email: values[2].trim()
+            };
+          });
+
+          var filterInput = document.getElementById('filter');
+          var visualization = document.getElementById('visualization');
+
+          filterInput.addEventListener('input', function() {
+            var filterValue = filterInput.value.toLowerCase();
+            var filteredData = rows.filter(function(row) {
+              return row.toLowerCase().includes(filterValue);
+            });
+
+            if (filterValue === '') {
+              drawScatterPlot(filteredData);
+            } else {
+              drawScatterPlot(data);
+            }
+          });
+
+          drawScatterPlot(filteredData);
+        })
+        .catch(function(error) {
+          console.log('Error fetching data:', error);
+        });
+    }
+
+    function drawScatterPlot(data) {
+      var visualization = document.getElementById('visualization');
+      visualization.innerHTML = ''; // Clear previous visualization
+
+      // Create scatter plot using D3.js
+      var margin = { top: 20, right: 20, bottom: 50, left: 50 };
+      var width = 800 - margin.left - margin.right;
+      var height = 400 - margin.top - margin.bottom;
+
+      var svg = d3.select("#visualization")
+        .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      // Define x and y scales
+      var xScale = d3.scaleLinear()
+        .domain([0, d3.max(data, function(d) { return d.age; })])
+        .range([0, width]);
+
+      var yScale = d3.scaleLinear()
+        .domain([0, data.length])
+        .range([height, 0]);
+
+      // Create x and y axes
+      var xAxis = d3.axisBottom(xScale);
+      var yAxis = d3.axisLeft(yScale);
+
+      // Append x axis to the visualization
+      svg.append("g")
+        .attr("class", "x-axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+      // Append y axis to the visualization
+      svg.append("g")
+        .attr("class", "y-axis")
+        .call(yAxis);
+
+      // Create scatter plot points with labels
+      var points = svg.selectAll("circle")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d) { return xScale(d.age); })
+        .attr("cy", function(d, i) { return yScale(i); })
+        .attr("r", 5)
+        .style("fill", "steelblue")
+        .on("mouseover", function(d) {
+          // Show label on mouseover
+          d3.select(this)
+            .attr("r", 8)  // Increase the circle size
+            .append("title")
+            .text(function(d) { return d.name; });
+        })
+        .on("mouseout", function(d) {
+          // Remove label on mouseout
+          d3.select(this)
+            .attr("r", 5)  // Restore the circle size
+            .select("title")
+            .remove();
+        });
+
+      // Add labels to the scatter plot points
+      points.append("title")
+        .text(function(d) { return d.name; });
+    }
+
+    fetchDataAndCreateVisualization();
+  </script>
+</body>
+</html>
