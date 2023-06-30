@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google Sheets Integration</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <script>
+    function getDataFromGoogleSheets() {
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTalgjyg8w13Twn2NDP9DI_mI3hrFAPbFPiVkX0eNYxvpZU8Q7PeLx3SHK-e2TIWG0ZNZ1apGOA0A6D/pub?output=csv')
+        .then(response => response.text())
+        .then(data => {
+          var rows = data.split('\n');
+          var tableBody = document.querySelector('#data-table tbody');
+          tableBody.innerHTML = '';
+
+          rows.forEach(row => {
+            var columns = row.split(',');
+            var newRow = document.createElement('tr');
+
+            columns.forEach(column => {
+              var newCell = document.createElement('td');
+              newCell.textContent = column;
+              newRow.appendChild(newCell);
+            });
+
+            tableBody.appendChild(newRow);
+          });
+        })
+        .catch(error => {
+          console.error('Error loading Google Sheets data:', error);
+        });
+    }
+
+    window.addEventListener('load', getDataFromGoogleSheets);
+  </script>
+</head>
+<body>
+  <h1>Data from Google Sheets</h1>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Email</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</body>
+</html>
