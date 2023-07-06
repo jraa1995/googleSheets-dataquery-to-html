@@ -4,6 +4,11 @@
   <title>Google Sheets Integration</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
   <script>
+    function getCurrentTimestamp() {
+      var timestamp = new Date().toISOString();
+      return timestamp;
+    }
+
     function getDataFromGoogleSheets() {
       fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTalgjyg8w13Twn2NDP9DI_mI3hrFAPbFPiVkX0eNYxvpZU8Q7PeLx3SHK-e2TIWG0ZNZ1apGOA0A6D/pub?output=csv')
         .then(response => response.text())
@@ -30,11 +35,28 @@
         });
     }
 
-    window.addEventListener('load', getDataFromGoogleSheets);
+    document.addEventListener('DOMContentLoaded', function() {
+      getDataFromGoogleSheets();
+
+      var publishButton = document.getElementById('publish-button');
+      var embedElement = document.getElementById('html-embed');
+
+      publishButton.addEventListener('click', function() {
+        var timestamp = getCurrentTimestamp();
+
+        // Update the HTML embedding with the timestamp
+        embedElement.src += "?timestamp=" + timestamp;
+
+        // Refresh the HTML embedding
+        embedElement.src = embedElement.src;
+      });
+    });
   </script>
 </head>
 <body>
   <h1>Data from Google Sheets</h1>
+  <button id="publish-button">Publish</button>
+  <iframe id="html-embed" src="your_embed_url"></iframe>
   <table id="data-table">
     <thead>
       <tr>
